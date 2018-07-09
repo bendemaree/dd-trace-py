@@ -3,8 +3,9 @@ import pytest
 from ddtrace.opentracer import Tracer
 
 
-def get_dummy_ot_tracer(service_name='', config={}, scope_manager=None):
+def get_dummy_ot_tracer(service_name='', config=None, scope_manager=None):
     from ..test_tracer import get_dummy_tracer
+    config = config or {}
     tracer = Tracer(service_name=service_name, config=config, scope_manager=scope_manager)
     tracer._dd_tracer = get_dummy_tracer()
     return tracer
@@ -32,7 +33,7 @@ class TestTracerConfig(object):
         assert tracer._enabled is True
 
     def test_no_service_name(self):
-        """Config without a service_name should raise an exception."""
+        """A service_name should be generated if one is not provided."""
         tracer = Tracer()
         assert tracer._service_name
 
@@ -491,21 +492,3 @@ class TestTracerSpanContextPropagation(object):
 
         ext_span_ctx = nop_tracer.extract(Format.TEXT_MAP, carrier)
         assert ext_span_ctx.baggage == span_ctx.baggage
-
-
-class TestTracer(object):
-    def test_init(self):
-        """Very basic test for skeleton code"""
-        tracer = Tracer(service_name='myservice')
-        assert tracer is not None
-
-
-class TestTracerCompatibility(object):
-
-    def test_required_dd_fields(self):
-        """Ensure required fields needed for successful tracing are possessed
-        by the underlying datadog tracer.
-        """
-        tracer = Tracer()
-        with tracer.start_span('my_span') as span:
-            assert span._dd_span.service
