@@ -124,7 +124,7 @@ class Tracer(opentracing.Tracer):
         return scope
 
     def start_span(self, operation_name=None, child_of=None, references=None,
-                    tags=None, start_time=None, ignore_active_span=False):
+                   tags=None, start_time=None, ignore_active_span=False):
         """Starts and returns a new Span representing a unit of work.
 
         Starting a root Span (a Span with no causal references)::
@@ -209,7 +209,11 @@ class Tracer(opentracing.Tracer):
         # create a new otspan and ddspan using the ddtracer and associate it
         # with the new otspan
         otspan = Span(self, ot_parent_context, operation_name)
-        ddspan = self._dd_tracer.start_span(name=operation_name, child_of=dd_parent)
+        ddspan = self._dd_tracer.start_span(
+            name=operation_name,
+            child_of=dd_parent,
+            service=self._service_name,
+        )
         # set the start time if one is specified
         ddspan.start = start_time or ddspan.start
         if tags is not None:
